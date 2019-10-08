@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,31 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.jeasy.rules.mvel;
+package org.jeasy.rules.support;
 
 import org.jeasy.rules.api.Rule;
 
+import java.util.ArrayList;
 import java.util.List;
 
-class MVELRuleDefinition {
+/**
+ * Rule definition as defined in a rule descriptor.
+ * This class encapsulates static definition of an {@link Rule}.
+ *
+ * This definition is produced by a {@link RuleDefinitionReader}
+ * and consumed by rule factories to create rules.
+ *
+ * @author Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ */
+public class RuleDefinition {
 
     private String name = Rule.DEFAULT_NAME;
     private String description = Rule.DEFAULT_DESCRIPTION;
     private int priority = Rule.DEFAULT_PRIORITY;
     private String condition;
-    private List<String> actions;
+    private List<String> actions = new ArrayList<>();
+    private List<RuleDefinition> composingRules = new ArrayList<>();
+    private String compositeRuleType;
 
     public String getName() {
         return name;
@@ -75,15 +87,23 @@ class MVELRuleDefinition {
         this.actions = actions;
     }
 
-    MVELRule create() {
-        MVELRule mvelRule = new MVELRule()
-                .name(name)
-                .description(description)
-                .priority(priority)
-                .when(condition);
-        for (String action : actions) {
-            mvelRule.then(action);
-        }
-        return mvelRule;
+    public void setComposingRules(List<RuleDefinition> composingRuleDefinitions) {
+        this.composingRules = composingRuleDefinitions;
+    }
+
+    public void setCompositeRuleType(String compositeRuleType) {
+        this.compositeRuleType = compositeRuleType;
+    }
+
+    public String getCompositeRuleType() {
+        return compositeRuleType;
+    }
+
+    public List<RuleDefinition> getComposingRules() {
+        return composingRules;
+    }
+
+    public boolean isCompositeRule() {
+        return !composingRules.isEmpty();
     }
 }

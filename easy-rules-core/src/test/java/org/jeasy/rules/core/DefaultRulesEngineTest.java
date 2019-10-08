@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,16 @@ import org.jeasy.rules.api.RuleListener;
 import org.jeasy.rules.api.RulesEngineListener;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
 public class DefaultRulesEngineTest extends AbstractTest {
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private RuleListener ruleListener;
@@ -213,6 +218,24 @@ public class DefaultRulesEngineTest extends AbstractTest {
     }
 
     @Test
+    public void getParametersShouldReturnACopyOfTheParameters() {
+        // Given
+        RulesEngineParameters parameters = new RulesEngineParameters()
+                .skipOnFirstAppliedRule(true)
+                .skipOnFirstFailedRule(true)
+                .skipOnFirstNonTriggeredRule(true)
+                .priorityThreshold(42);
+        DefaultRulesEngine rulesEngine = new DefaultRulesEngine(parameters);
+
+        // When
+        RulesEngineParameters engineParameters = rulesEngine.getParameters();
+
+        // Then
+        Assertions.assertThat(engineParameters).isNotSameAs(parameters);
+        Assertions.assertThat(engineParameters).isEqualToComparingFieldByField(parameters);
+    }
+
+    @Test
     public void testGetRuleListeners() throws Exception {
         // Given
         DefaultRulesEngine rulesEngine = new DefaultRulesEngine();
@@ -226,6 +249,21 @@ public class DefaultRulesEngineTest extends AbstractTest {
     }
 
     @Test
+    public void getRuleListenersShouldReturnAnUnmodifiableList() {
+        // Given
+        expectedException.expect(UnsupportedOperationException.class);
+        DefaultRulesEngine rulesEngine = new DefaultRulesEngine();
+        rulesEngine.registerRuleListener(ruleListener);
+
+        // When
+        List<RuleListener> ruleListeners = rulesEngine.getRuleListeners();
+        ruleListeners.clear();
+
+        // Then
+        // expected exception
+    }
+
+    @Test
     public void testGetRulesEngineListeners() throws Exception {
         // Given
         DefaultRulesEngine rulesEngine = new DefaultRulesEngine();
@@ -236,6 +274,21 @@ public class DefaultRulesEngineTest extends AbstractTest {
 
         // Then
         assertThat(rulesEngineListeners).contains(rulesEngineListener);
+    }
+
+    @Test
+    public void getRulesEngineListenersShouldReturnAnUnmodifiableList() {
+        // Given
+        expectedException.expect(UnsupportedOperationException.class);
+        DefaultRulesEngine rulesEngine = new DefaultRulesEngine();
+        rulesEngine.registerRulesEngineListener(rulesEngineListener);
+
+        // When
+        List<RulesEngineListener> rulesEngineListeners = rulesEngine.getRulesEngineListeners();
+        rulesEngineListeners.clear();
+
+        // Then
+        // excepted exception
     }
 
     @After

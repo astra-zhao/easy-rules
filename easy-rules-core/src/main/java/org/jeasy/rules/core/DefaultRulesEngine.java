@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,12 @@
  */
 package org.jeasy.rules.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.jeasy.rules.api.Facts;
-import org.jeasy.rules.api.Rule;
-import org.jeasy.rules.api.RuleListener;
-import org.jeasy.rules.api.RulesEngineListener;
-import org.jeasy.rules.api.Rules;
-import org.jeasy.rules.api.RulesEngine;
+import org.jeasy.rules.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Default {@link RulesEngine} implementation.
@@ -45,19 +39,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  */
-public final class DefaultRulesEngine implements RulesEngine {
+public final class DefaultRulesEngine extends AbstractRuleEngine {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRuleListener.class);
-
-    private RulesEngineParameters parameters;
-    private List<RuleListener> ruleListeners;
-    private List<RulesEngineListener> rulesEngineListeners;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRulesEngine.class);
 
     /**
      * Create a new {@link DefaultRulesEngine} with default parameters.
      */
     public DefaultRulesEngine() {
-        this(new RulesEngineParameters());
+        super();
     }
 
     /**
@@ -66,26 +56,7 @@ public final class DefaultRulesEngine implements RulesEngine {
      * @param parameters of the engine
      */
     public DefaultRulesEngine(final RulesEngineParameters parameters) {
-        this.parameters = parameters;
-        this.ruleListeners = new ArrayList<>();
-        this.ruleListeners.add(new DefaultRuleListener());
-        this.rulesEngineListeners = new ArrayList<>();
-        this.rulesEngineListeners.add(new DefaultRulesEngineListener(parameters));
-    }
-
-    @Override
-    public RulesEngineParameters getParameters() {
-        return parameters;
-    }
-
-    @Override
-    public List<RuleListener> getRuleListeners() {
-        return ruleListeners;
-    }
-
-    @Override
-    public List<RulesEngineListener> getRulesEngineListeners() {
-        return rulesEngineListeners;
+        super(parameters);
     }
 
     @Override
@@ -100,12 +71,12 @@ public final class DefaultRulesEngine implements RulesEngine {
             final String name = rule.getName();
             final int priority = rule.getPriority();
             if (priority > parameters.getPriorityThreshold()) {
-                LOGGER.info("Rule priority threshold ({}) exceeded at rule '{}' with priority={}, next rules will be skipped",
+                LOGGER.debug("Rule priority threshold ({}) exceeded at rule '{}' with priority={}, next rules will be skipped",
                         parameters.getPriorityThreshold(), name, priority);
                 break;
             }
             if (!shouldBeEvaluated(rule, facts)) {
-                LOGGER.info("Rule '{}' has been skipped before being evaluated",
+                LOGGER.debug("Rule '{}' has been skipped before being evaluated",
                     name);
                 continue;
             }
@@ -116,20 +87,20 @@ public final class DefaultRulesEngine implements RulesEngine {
                     rule.execute(facts);
                     triggerListenersOnSuccess(rule, facts);
                     if (parameters.isSkipOnFirstAppliedRule()) {
-                        LOGGER.info("Next rules will be skipped since parameter skipOnFirstAppliedRule is set");
+                        LOGGER.debug("Next rules will be skipped since parameter skipOnFirstAppliedRule is set");
                         break;
                     }
                 } catch (Exception exception) {
                     triggerListenersOnFailure(rule, exception, facts);
                     if (parameters.isSkipOnFirstFailedRule()) {
-                        LOGGER.info("Next rules will be skipped since parameter skipOnFirstFailedRule is set");
+                        LOGGER.debug("Next rules will be skipped since parameter skipOnFirstFailedRule is set");
                         break;
                     }
                 }
             } else {
                 triggerListenersAfterEvaluate(rule, facts, false);
                 if (parameters.isSkipOnFirstNonTriggeredRule()) {
-                    LOGGER.info("Next rules will be skipped since parameter skipOnFirstNonTriggeredRule is set");
+                    LOGGER.debug("Next rules will be skipped since parameter skipOnFirstNonTriggeredRule is set");
                     break;
                 }
             }
@@ -145,7 +116,7 @@ public final class DefaultRulesEngine implements RulesEngine {
     }
 
     private Map<Rule, Boolean> doCheck(Rules rules, Facts facts) {
-        LOGGER.info("Checking rules");
+        LOGGER.debug("Checking rules");
         Map<Rule, Boolean> result = new HashMap<>();
         for (Rule rule : rules) {
             if (shouldBeEvaluated(rule, facts)) {
@@ -204,35 +175,4 @@ public final class DefaultRulesEngine implements RulesEngine {
         return triggerListenersBeforeEvaluate(rule, facts);
     }
 
-    /**
-     * Register a rule listener.
-     * @param ruleListener to register
-     */
-    public void registerRuleListener(RuleListener ruleListener) {
-        ruleListeners.add(ruleListener);
-    }
-
-    /**
-     * Register a list of rule listener.
-     * @param ruleListeners to register
-     */
-    public void registerRuleListeners(List<RuleListener> ruleListeners) {
-        this.ruleListeners.addAll(ruleListeners);
-    }
-
-    /**
-     * Register a rules engine listener.
-     * @param rulesEngineListener to register
-     */
-    public void registerRulesEngineListener(RulesEngineListener rulesEngineListener) {
-        rulesEngineListeners.add(rulesEngineListener);
-    }
-
-    /**
-     * Register a list of rules engine listener.
-     * @param rulesEngineListeners to register
-     */
-    public void registerRulesEngineListeners(List<RulesEngineListener> rulesEngineListeners) {
-        this.rulesEngineListeners.addAll(rulesEngineListeners);
-    }
 }

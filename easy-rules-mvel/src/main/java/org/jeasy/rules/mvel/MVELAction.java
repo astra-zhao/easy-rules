@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package org.jeasy.rules.mvel;
 import org.jeasy.rules.api.Action;
 import org.jeasy.rules.api.Facts;
 import org.mvel2.MVEL;
+import org.mvel2.ParserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +54,24 @@ public class MVELAction implements Action {
         compiledExpression = MVEL.compileExpression(expression);
     }
 
+    /**
+     * Create a new {@link MVELAction}.
+     *
+     * @param expression the action written in expression language
+     * @param parserContext the MVEL parser context
+     */
+    public MVELAction(String expression, ParserContext parserContext) {
+        this.expression = expression;
+        compiledExpression = MVEL.compileExpression(expression, parserContext);
+    }
+
     @Override
     public void execute(Facts facts) {
         try {
             MVEL.executeExpression(compiledExpression, facts.asMap());
         } catch (Exception e) {
-            LOGGER.debug("Unable to evaluate expression: '" + expression + "' on facts: " + facts, e);
+            LOGGER.error("Unable to evaluate expression: '" + expression + "' on facts: " + facts, e);
+            throw e;
         }
     }
 }

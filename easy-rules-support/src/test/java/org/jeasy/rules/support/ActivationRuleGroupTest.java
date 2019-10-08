@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -82,6 +82,23 @@ public class ActivationRuleGroupTest {
         }
     }
 
+    @Test
+    public void whenNoSelectedRule_thenNothingShouldHappen(){
+        // given
+        Rule4 rule4 = new Rule4();
+        ActivationRuleGroup activationRuleGroup = new ActivationRuleGroup("my activation rule", "rule4");
+        activationRuleGroup.addRule(rule4);
+
+        //when
+        rules.register(activationRuleGroup);
+
+        //then
+        rulesEngine.fire(rules,facts);
+
+        // rule4 will not be selected, so it should not be executed
+        assertThat(rule4.isExecuted()).isFalse();
+    }
+
     @org.jeasy.rules.annotation.Rule(priority = 1)
     public class Rule1 {
         private boolean executed;
@@ -119,5 +136,20 @@ public class ActivationRuleGroupTest {
         public void then() { executed = true; }
 
         public boolean isExecuted() { return executed; }
+    }
+
+    @org.jeasy.rules.annotation.Rule(priority = 1)
+    public class Rule4 {
+
+        private boolean executed;
+
+        @Condition
+        public boolean when() { return false; }
+
+        @Action
+        public void then() { executed = true; }
+
+        public boolean isExecuted() { return executed; }
+
     }
 }

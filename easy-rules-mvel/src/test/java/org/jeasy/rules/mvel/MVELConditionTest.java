@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package org.jeasy.rules.mvel;
 import org.jeasy.rules.api.Condition;
 import org.jeasy.rules.api.Facts;
 import org.junit.Test;
+import org.mvel2.ParserContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,5 +57,19 @@ public class MVELConditionTest {
 
         // then
         assertThat(evaluationResult).isFalse();
+    }
+
+    @Test
+    public void testMVELConditionWithExpressionAndParserContext() {
+        // given
+        ParserContext context = new ParserContext();
+        context.addPackageImport("java.util");
+        Condition condition = new MVELCondition("return new java.util.Random(123).nextBoolean();", context);
+        Facts facts = new Facts();
+        // when
+        boolean evaluationResult = condition.evaluate(facts);
+
+        // then
+        assertThat(evaluationResult).isTrue();
     }
 }

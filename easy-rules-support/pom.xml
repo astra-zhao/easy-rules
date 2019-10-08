@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jeasy</groupId>
         <artifactId>easy-rules</artifactId>
-        <version>3.2.1-SNAPSHOT</version>
+        <version>3.4.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>easy-rules-support</artifactId>
@@ -52,7 +52,17 @@
         <dependency>
             <groupId>org.jeasy</groupId>
             <artifactId>easy-rules-core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
@@ -87,7 +97,7 @@
                 <configuration>
                     <header>${project.basedir}/licence-header-template.txt</header>
                     <properties>
-                        <currentYear>2018</currentYear>
+                        <currentYear>2019</currentYear>
                     </properties>
                     <strictCheck>true</strictCheck>
                     <includes>

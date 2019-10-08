@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -89,9 +89,11 @@ public class UnitRuleGroupTest {
         verify(rule2).execute(facts);
     }
 
+    @Test
     public void compositeRuleMustNotBeExecutedIfAComposingRuleEvaluatesToFalse() throws Exception {
         // Given
         when(rule2.evaluate(facts)).thenReturn(false);
+        unitRuleGroup = new UnitRuleGroup();
         unitRuleGroup.addRule(rule1);
         unitRuleGroup.addRule(rule2);
         rules.register(unitRuleGroup);

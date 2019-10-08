@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,10 @@
  */
 package org.jeasy.rules.mvel;
 
+import org.jeasy.rules.api.Rule;
 import org.jeasy.rules.api.Rules;
+import org.jeasy.rules.support.*;
+import org.mvel2.ParserContext;
 
 import java.io.Reader;
 import java.util.List;
@@ -33,9 +36,20 @@ import java.util.List;
  *
  * @author Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  */
-public class MVELRuleFactory {
+public class MVELRuleFactory extends AbstractRuleFactory<ParserContext> {
 
-    private static MVELRuleDefinitionReader reader = new MVELRuleDefinitionReader();
+    private RuleDefinitionReader reader;
+
+    /**
+     * Create a new {@link MVELRuleFactory} with a given reader.
+     *
+     * @param reader to use to read rule definitions
+     * @see YamlRuleDefinitionReader
+     * @see JsonRuleDefinitionReader
+     */
+    public MVELRuleFactory(RuleDefinitionReader reader) {
+        this.reader = reader;
+    }
 
     /**
      * Create a new {@link MVELRule} from a Reader.
@@ -43,9 +57,27 @@ public class MVELRuleFactory {
      * @param ruleDescriptor as a Reader
      * @return a new rule
      */
-    public static MVELRule createRuleFrom(Reader ruleDescriptor) {
-        MVELRuleDefinition ruleDefinition = reader.read(ruleDescriptor);
-        return ruleDefinition.create();
+    public Rule createRule(Reader ruleDescriptor) throws Exception {
+        return createRule(ruleDescriptor, new ParserContext());
+    }
+
+    /**
+     * Create a new {@link MVELRule} from a Reader.
+     *
+     * The rule descriptor should contain a single rule definition.
+     * If no rule definitions are found, a {@link IllegalArgumentException} will be thrown.
+     * If more than a rule is defined in the descriptor, the first rule will be returned.
+     *
+     * @param ruleDescriptor as a Reader
+     * @param parserContext the MVEL parser context
+     * @return a new rule
+     */
+    public Rule createRule(Reader ruleDescriptor, ParserContext parserContext) throws Exception {
+        List<RuleDefinition> ruleDefinitions = reader.read(ruleDescriptor);
+        if (ruleDefinitions.isEmpty()) {
+            throw new IllegalArgumentException("rule descriptor is empty");
+        }
+        return createRule(ruleDefinitions.get(0), parserContext);
     }
 
     /**
@@ -54,12 +86,35 @@ public class MVELRuleFactory {
      * @param rulesDescriptor as a Reader
      * @return a set of rules
      */
-    public static Rules createRulesFrom(Reader rulesDescriptor) {
+    public Rules createRules(Reader rulesDescriptor) throws Exception {
+        return createRules(rulesDescriptor, new ParserContext());
+    }
+
+    /**
+     * Create a set of {@link MVELRule} from a Reader.
+     *
+     * @param rulesDescriptor as a Reader
+     * @return a set of rules
+     */
+    public Rules createRules(Reader rulesDescriptor, ParserContext parserContext) throws Exception {
         Rules rules = new Rules();
-        List<MVELRuleDefinition> ruleDefinition = reader.readAll(rulesDescriptor);
-        for (MVELRuleDefinition mvelRuleDefinition : ruleDefinition) {
-            rules.register(mvelRuleDefinition.create());
+        List<RuleDefinition> ruleDefinitions = reader.read(rulesDescriptor);
+        for (RuleDefinition ruleDefinition : ruleDefinitions) {
+            rules.register(createRule(ruleDefinition, parserContext));
         }
         return rules;
     }
+
+    protected Rule createSimpleRule(RuleDefinition ruleDefinition, ParserContext parserContext) {
+        MVELRule mvelRule = new MVELRule()
+                .name(ruleDefinition.getName())
+                .description(ruleDefinition.getDescription())
+                .priority(ruleDefinition.getPriority())
+                .when(ruleDefinition.getCondition(), parserContext);
+        for (String action : ruleDefinition.getActions()) {
+            mvelRule.then(action, parserContext);
+        }
+        return mvelRule;
+    }
+
 }

@@ -1,7 +1,7 @@
 /**
  * The MIT License
  *
- *  Copyright (c) 2018, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
+ *  Copyright (c) 2019, Mahmoud Ben Hassine (mahmoud.benhassine@icloud.com)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,11 @@ public class RuleDefinitionValidatorTest {
         ruleDefinitionValidator.validateRuleDefinition(new AnnotatedRuleWithConditionMethodHavingNonBooleanReturnType());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void conditionMethodParametersShouldAllBeAnnotatedWithFactUnlessExactlyOneOfThemIsOfTypeFacts() {
+        ruleDefinitionValidator.validateRuleDefinition(new AnnotatedRuleWithOneParameterNotAnnotatedWithFactAndNotOfTypeFacts());
+    }
+
     /*
      * Action method tests
      */
@@ -100,6 +105,11 @@ public class RuleDefinitionValidatorTest {
     @Test(expected = IllegalArgumentException.class)
     public void actionMethodMustReturnVoid() {
         ruleDefinitionValidator.validateRuleDefinition(new AnnotatedRuleWithActionMethodThatReturnsNonVoidType());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void actionMethodParametersShouldAllBeAnnotatedWithFactUnlessExactlyOneOfThemIsOfTypeFacts() {
+        ruleDefinitionValidator.validateRuleDefinition(new AnnotatedRuleWithOneParameterNotAnnotatedWithFactAndNotOfTypeFacts());
     }
 
     /*
